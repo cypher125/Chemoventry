@@ -43,53 +43,113 @@ import Link from 'next/link';
 type Chemical = {
   id: string;
   name: string;
-  formula: string;
-  casNumber: string;
   quantity: number;
   unit: string;
+  description: string;
+  vendor: string;
+  hazard_information: string;
+  molecular_formula: string;
+  reactivity_group: string;
+  chemical_type: string;
+  chemical_state: string;
+  expires: string;
+  created_at: string;
+  updated_at: string;
   location: string;
-  expirationDate: string;
-  reactivity: 'Low' | 'Moderate' | 'High';
-  organicState: 'Solid' | 'Liquid' | 'Gas';
+  created_by: number;
 };
 
 const initialChemicals: Chemical[] = [
   {
-    id: '1',
-    name: 'Sodium Chloride',
-    formula: 'NaCl',
-    casNumber: '7647-14-5',
-    quantity: 500,
-    unit: 'g',
-    location: 'Shelf A1',
-    expirationDate: '2024-12-31',
-    reactivity: 'Low',
-    organicState: 'Solid',
+      id: "e56b4f99-1d2d-4446-86ef-20ea9a161f88",
+      name: "Hydrochloric Acid",
+      quantity: 500.0,
+      unit: "l",
+      description: "A strong acid used in laboratory and industrial processes.",
+      vendor: "LabSupplies Co.",
+      hazard_information: "Corrosive; handle with care.",
+      molecular_formula: "HCl",
+      reactivity_group: "Noble Gas",
+      chemical_type: "Inorganic",
+      chemical_state: "Liquid",
+      expires: "2025-12-01",
+      created_at: "2025-01-03T15:41:41.167647Z",
+      updated_at: "2025-01-03T15:41:41.167661Z",
+      location: "2",
+      created_by: 1
   },
   {
-    id: '2',
-    name: 'Hydrochloric Acid',
-    formula: 'HCl',
-    casNumber: '7647-01-0',
-    quantity: 1,
-    unit: 'L',
-    location: 'Cabinet B2',
-    expirationDate: '2023-10-15',
-    reactivity: 'High',
-    organicState: 'Liquid',
+      id: "0236bfc2-b471-47bf-b1f3-276fedf9cb24",
+      name: "Ethanol",
+      quantity: 1000.0,
+      unit: "l",
+      description: "A common solvent and disinfectant.",
+      vendor: "ChemicalWorld Inc.",
+      hazard_information: "Highly flammable; keep away from open flames.",
+      molecular_formula: "C2H6O",
+      reactivity_group: "Alkali",
+      chemical_type: "Organic",
+      chemical_state: "Liquid",
+      expires: "2026-07-15",
+      created_at: "2025-01-03T15:42:41.834678Z",
+      updated_at: "2025-01-03T15:42:41.834690Z",
+      location: "2",
+      created_by: 1
   },
   {
-    id: '3',
-    name: 'Ethanol',
-    formula: 'C2H5OH',
-    casNumber: '64-17-5',
-    quantity: 2.5,
-    unit: 'L',
-    location: 'Flammables Cabinet',
-    expirationDate: '2025-06-30',
-    reactivity: 'Moderate',
-    organicState: 'Liquid',
+      id: "1607747e-888f-48cd-80b3-39d53b0ec597",
+      name: "Sodium Chloride",
+      quantity: 2000.0,
+      unit: "g",
+      description: "Common salt used in labs and industries.",
+      vendor: "Global Chemicals",
+      hazard_information: "Non-hazardous under normal use.",
+      molecular_formula: "NaCl",
+      reactivity_group: "Nonmetal",
+      chemical_type: "Inorganic",
+      chemical_state: "Solid",
+      expires: "2030-01-01",
+      created_at: "2025-01-03T15:45:47.194636Z",
+      updated_at: "2025-01-03T15:45:47.194649Z",
+      location: "4",
+      created_by: 1
   },
+  {
+      id: "e0ba7f8d-47b0-4052-9f5c-c699d6ddc316",
+      name: "Ammonium Nitrate",
+      quantity: 5000.0,
+      unit: "g",
+      description: "A compound used as a fertilizer and explosive precursor.",
+      vendor: "AgriChem Supplies",
+      hazard_information: "Explosive under certain conditions.",
+      molecular_formula: "NH4NO3",
+      reactivity_group: "Actinide",
+      chemical_type: "Inorganic",
+      chemical_state: "Solid",
+      expires: "2028-11-10",
+      created_at: "2025-01-03T15:48:33.773305Z",
+      updated_at: "2025-01-03T15:48:33.773322Z",
+      location: "3",
+      created_by: 1
+  },
+  {
+      id: "755d79dc-e424-4ded-a782-b3e74e4b6a54",
+      name: "Sodium Chloride",
+      quantity: 500.0,
+      unit: "kg",
+      description: "Commonly known as table salt, used in laboratories.",
+      vendor: "ChemCorp Ltd.",
+      hazard_information: "Non-flammable, avoid inhalation.",
+      molecular_formula: "NaCl",
+      reactivity_group: "Alkali",
+      chemical_type: "Organic",
+      chemical_state: "Gas",
+      expires: "2025-04-12",
+      created_at: "2025-01-20T13:54:12.757460Z",
+      updated_at: "2025-01-20T13:54:12.757476Z",
+      location: "3",
+      created_by: 1
+  }
 ];
 
 export function ChemicalInventory() {
@@ -97,23 +157,23 @@ export function ChemicalInventory() {
   const [searchTerm, setSearchTerm] = useState('');
   const [newChemical, setNewChemical] = useState<Partial<Chemical>>({});
   const [reactivityFilter, setReactivityFilter] = useState<
-    Chemical['reactivity'] | 'All'
+    Chemical['reactivity_group'] | 'All'
   >('All');
   const [organicStateFilter, setOrganicStateFilter] = useState<
-    Chemical['organicState'] | 'All'
+    Chemical['chemical_state'] | 'All'
   >('All');
 
   const filteredChemicals = chemicals.filter(
     (chemical) =>
       chemical.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
       (reactivityFilter === 'All' ||
-        chemical.reactivity === reactivityFilter) &&
+        chemical.reactivity_group === reactivityFilter) &&
       (organicStateFilter === 'All' ||
-        chemical.organicState === organicStateFilter)
+        chemical.chemical_state === organicStateFilter)
   );
 
   const handleAddChemical = () => {
-    if (newChemical.name && newChemical.formula && newChemical.casNumber) {
+    if (newChemical.name && newChemical.molecular_formula && newChemical.id) {
       const newChemicalWithId = {
         ...newChemical,
         id: (chemicals.length + 1).toString(),
@@ -147,7 +207,7 @@ export function ChemicalInventory() {
             <Select
               value={reactivityFilter}
               onValueChange={(value) =>
-                setReactivityFilter(value as Chemical['reactivity'] | 'All')
+                setReactivityFilter(value as Chemical['reactivity_group'] | 'All')
               }
             >
               <SelectTrigger className="w-full sm:w-[180px] dark:bg-gray-800">
@@ -158,12 +218,16 @@ export function ChemicalInventory() {
                 <SelectItem value="Low">Low</SelectItem>
                 <SelectItem value="Moderate">Moderate</SelectItem>
                 <SelectItem value="High">High</SelectItem>
+                <SelectItem value="Noble Gas">Noble Gas</SelectItem>
+                <SelectItem value="Alkali">Alkali</SelectItem>
+                <SelectItem value="Nonmetal">Nonmetal</SelectItem>
+                <SelectItem value="Actinide">Actinide</SelectItem>
               </SelectContent>
             </Select>
             <Select
               value={organicStateFilter}
               onValueChange={(value) =>
-                setOrganicStateFilter(value as Chemical['organicState'] | 'All')
+                setOrganicStateFilter(value as Chemical['chemical_state'] | 'All')
               }
             >
               <SelectTrigger className="w-full dark:bg-gray-800 sm:w-[180px]">
@@ -210,70 +274,74 @@ export function ChemicalInventory() {
                   </Label>
                   <Input
                     id="formula"
-                    value={newChemical.formula || ''}
+                    value={newChemical.molecular_formula || ''}
                     onChange={(e) =>
                       setNewChemical({
                         ...newChemical,
-                        formula: e.target.value,
+                        molecular_formula: e.target.value,
                       })
                     }
                     className="col-span-3"
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="casNumber" className="text-right">
-                    CAS Number
+                  <Label htmlFor="formula" className="text-right">
+                    Molecular Formula
                   </Label>
                   <Input
-                    id="casNumber"
-                    value={newChemical.casNumber || ''}
+                    id="formula"
+                    value={newChemical.molecular_formula || ''}
                     onChange={(e) =>
                       setNewChemical({
                         ...newChemical,
-                        casNumber: e.target.value,
+                        molecular_formula: e.target.value,
                       })
                     }
                     className="col-span-3"
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="reactivity" className="text-right">
-                    Reactivity
+                  <Label htmlFor="reactivity_group" className="text-right">
+                    Reactivity Group
                   </Label>
                   <Select
-                    value={newChemical.reactivity}
+                    value={newChemical.reactivity_group}
                     onValueChange={(value) =>
                       setNewChemical({
                         ...newChemical,
-                        reactivity: value as Chemical['reactivity'],
+                        reactivity_group: value as Chemical['reactivity_group'],
                       })
                     }
                   >
                     <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select reactivity" />
+                      <SelectValue placeholder="Select reactivity group" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Low">Low</SelectItem>
                       <SelectItem value="Moderate">Moderate</SelectItem>
                       <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Noble Gas">Noble Gas</SelectItem>
+                      <SelectItem value="Alkali">Alkali</SelectItem>
+                      <SelectItem value="Nonmetal">Nonmetal</SelectItem>
+                      <SelectItem value="Actinide">Actinide</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="organicState" className="text-right">
-                    Organic State
+                  <Label htmlFor="chemicalState" className="text-right">
+                    Chemical State
                   </Label>
                   <Select
-                    value={newChemical.organicState}
+                    value={newChemical.chemical_state}
                     onValueChange={(value) =>
                       setNewChemical({
                         ...newChemical,
-                        organicState: value as Chemical['organicState'],
+                        chemical_state: value as Chemical['chemical_state'],
                       })
                     }
                   >
                     <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select organic state" />
+                      <SelectValue placeholder="Select chemical state" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Solid">Solid</SelectItem>
@@ -300,12 +368,12 @@ export function ChemicalInventory() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Formula</TableHead>
-                <TableHead>CAS Number</TableHead>
+                <TableHead>Reactivity Group</TableHead>
                 <TableHead>Quantity</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Expiration Date</TableHead>
-                <TableHead>Reactivity</TableHead>
-                <TableHead>Organic State</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Chemical State</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -320,13 +388,13 @@ export function ChemicalInventory() {
                       {chemical.name}
                     </Link>
                   </TableCell>
-                  <TableCell>{chemical.formula}</TableCell>
-                  <TableCell>{chemical.casNumber}</TableCell>
+                  <TableCell>{chemical.molecular_formula}</TableCell>
+                  <TableCell>{chemical.reactivity_group}</TableCell>
                   <TableCell>{`${chemical.quantity} ${chemical.unit}`}</TableCell>
                   <TableCell>{chemical.location}</TableCell>
-                  <TableCell>{chemical.expirationDate}</TableCell>
-                  <TableCell>{chemical.reactivity}</TableCell>
-                  <TableCell>{chemical.organicState}</TableCell>
+                  <TableCell>{chemical.expires}</TableCell>
+                  <TableCell>{chemical.chemical_type}</TableCell>
+                  <TableCell>{chemical.chemical_state}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
