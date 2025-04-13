@@ -8,28 +8,42 @@ export interface Location {
   storage_conditions?: string;
   max_capacity?: number;
   current_capacity?: number;
-  is_active: boolean;
+  is_active?: boolean;
 }
 
 export interface Chemical {
   id: string;
-  cas_number: string;
   name: string;
-  formula: string;
+  quantity: number;
+  description: string;
+  vendor: string;
+  hazard_information: string;
+  molecular_formula: string;
+  reactivity_group: 'Alkali' | 'Alkaline Earth' | 'Transition Metal' | 'Lanthanide' | 'Actinide' | 'Metal' | 'Nonmetal' | 'Halogen' | 'Noble Gas' | 'Other';
+  chemical_type: 'Organic' | 'Inorganic' | 'Both';
+  chemical_state: 'Solid' | 'Liquid' | 'Gas' | 'Plasma' | 'Other';
+  location: Location | string;
+  location_id?: string;
+  expires: string;
+  expiry_date?: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  
+  // Add compatibility fields for existing code
+  formula?: string;
+  cas_number?: string;
   state?: 'solid' | 'liquid' | 'gas';
   hazard_class?: string;
   storage_conditions?: string;
-  initial_quantity: number;
-  current_quantity: number;
-  unit: string;
-  location_id: string;
-  location_name?: string;
-  date_registered: string;
-  expiry_date?: string;
+  initial_quantity?: number;
+  current_quantity?: number;
+  unit?: string;
+  date_registered?: string;
   supplier?: string;
   msds_url?: string;
   comments?: string;
-  is_active: boolean;
+  is_active?: boolean;
 }
 
 export interface ChemicalFilter {
@@ -65,10 +79,10 @@ export interface DashboardOverview {
 
 // Mock data based on the schema
 export const mockLocations: Location[] = [
-  { id: '1', name: 'Lab A' },
-  { id: '2', name: 'Lab B' },
-  { id: '3', name: 'Storage Room 1' },
-  { id: '4', name: 'Storage Room 2' },
+  { id: '1', name: 'Lab A', is_active: true },
+  { id: '2', name: 'Lab B', is_active: true },
+  { id: '3', name: 'Storage Room 1', is_active: true },
+  { id: '4', name: 'Storage Room 2', is_active: true },
 ];
 
 export const mockChemicals: Chemical[] = [
@@ -107,3 +121,12 @@ export const mockChemicals: Chemical[] = [
     updated_at: '2024-03-04T12:00:00Z',
   },
 ];
+
+// Helper type for reactivity groups
+export type ReactivityGroup = 'Alkali' | 'Alkaline Earth' | 'Transition Metal' | 'Lanthanide' | 'Actinide' | 'Metal' | 'Nonmetal' | 'Halogen' | 'Noble Gas' | 'Other';
+
+// Helper type for chemical states
+export type ChemicalState = 'Solid' | 'Liquid' | 'Gas' | 'Plasma' | 'Other';
+
+// Helper type for chemical types
+export type ChemicalType = 'Organic' | 'Inorganic' | 'Both';

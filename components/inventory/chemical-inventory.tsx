@@ -56,12 +56,8 @@ export function ChemicalInventory() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [newChemical, setNewChemical] = useState<Partial<Chemical>>({});
-  const [reactivityFilter, setReactivityFilter] = useState<
-    Chemical['reactivity_group'] | 'All'
-  >('All');
-  const [organicStateFilter, setOrganicStateFilter] = useState<
-    Chemical['chemical_state'] | 'All'
-  >('All');
+  const [reactivityFilter, setReactivityFilter] = useState<string>('All');
+  const [organicStateFilter, setOrganicStateFilter] = useState<string>('All');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const filteredChemicals = chemicals.filter(
@@ -70,16 +66,31 @@ export function ChemicalInventory() {
       (reactivityFilter === 'All' ||
         chemical.reactivity_group === reactivityFilter) &&
       (organicStateFilter === 'All' ||
-        chemical.chemical_state === organicStateFilter)
+        (chemical.chemical_state === organicStateFilter || chemical.state === organicStateFilter))
   );
 
   const handleAddChemical = async () => {
-    if (newChemical.name && newChemical.molecular_formula) {
+    if ((newChemical.name && newChemical.molecular_formula)) {
       setIsSubmitting(true);
       try {
-        await addChemical(newChemical);
+        // Prepare data for submission ensuring compatibility with backend model
+        const chemicalToSubmit = {
+          ...newChemical,
+          // Ensure these required fields are populated
+          molecular_formula: newChemical.molecular_formula || newChemical.formula,
+          chemical_state: newChemical.chemical_state || 'Solid',
+          chemical_type: newChemical.chemical_type || 'Inorganic',
+          reactivity_group: newChemical.reactivity_group || 'Other',
+          quantity: Number(newChemical.quantity || newChemical.initial_quantity || 0),
+          hazard_information: newChemical.hazard_information || 'Unknown',
+          description: newChemical.description || `${newChemical.name} - ${newChemical.chemical_state || 'Solid'}`,
+          vendor: newChemical.vendor || newChemical.supplier || 'Unknown',
+          expires: newChemical.expires || newChemical.expiry_date || new Date(Date.now() + 365*24*60*60*1000).toISOString().split('T')[0],
+        };
+        
+        await addChemical(chemicalToSubmit);
         setNewChemical({});
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Failed to add chemical:', error);
       } finally {
         setIsSubmitting(false);
@@ -96,9 +107,18 @@ export function ChemicalInventory() {
   };
 
   // Helper function to get location name from ID
-  const getLocationName = (locationId: string) => {
+  const getLocationName = (locationId: string | any) => {
+    if (!locationId) return 'Unknown';
+    
+    // Handle when location is passed as an object
+    if (typeof locationId === 'object' && locationId !== null) {
+      if (locationId.name) return locationId.name;
+      if (locationId.id) locationId = locationId.id;
+    }
+    
+    // Handle when location is passed as an ID
     const location = locations.find(loc => loc.id === locationId);
-    return location ? location.name : locationId;
+    return location ? location.name : (locationId.toString() || 'Unknown');
   };
 
   return (
@@ -118,7 +138,7 @@ export function ChemicalInventory() {
             <Select
               value={reactivityFilter}
               onValueChange={(value) =>
-                setReactivityFilter(value as Chemical['reactivity_group'] | 'All')
+                setReactivityFilter(value)
               }
             >
               <SelectTrigger className="w-[180px]">
@@ -126,22 +146,20 @@ export function ChemicalInventory() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="All">All Reactivity</SelectItem>
-                <SelectItem value="Alkali">Alkali</SelectItem>
-                <SelectItem value="Alkaline Earth">Alkaline Earth</SelectItem>
-                <SelectItem value="Transition Metal">Transition Metal</SelectItem>
-                <SelectItem value="Lanthanide">Lanthanide</SelectItem>
-                <SelectItem value="Actinide">Actinide</SelectItem>
-                <SelectItem value="Metal">Metal</SelectItem>
-                <SelectItem value="Nonmetal">Nonmetal</SelectItem>
-                <SelectItem value="Halogen">Halogen</SelectItem>
-                <SelectItem value="Noble Gas">Noble Gas</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
+                <SelectItem value="Flammable">Flammable</SelectItem>
+                <SelectItem value="Corrosive">Corrosive</SelectItem>
+                <SelectItem value="Toxic">Toxic</SelectItem>
+                <SelectItem value="Oxidizer">Oxidizer</SelectItem>
+                <SelectItem value="Irritant">Irritant</SelectItem>
+                <SelectItem value="Harmful">Harmful</SelectItem>
+                <SelectItem value="Environmental Hazard">Environmental Hazard</SelectItem>
+                <SelectItem value="Non-hazardous">Non-hazardous</SelectItem>
               </SelectContent>
             </Select>
             <Select
               value={organicStateFilter}
               onValueChange={(value) =>
-                setOrganicStateFilter(value as Chemical['chemical_state'] | 'All')
+                setOrganicStateFilter(value)
               }
             >
               <SelectTrigger className="w-[180px]">
@@ -149,11 +167,9 @@ export function ChemicalInventory() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="All">All States</SelectItem>
-                <SelectItem value="Solid">Solid</SelectItem>
-                <SelectItem value="Liquid">Liquid</SelectItem>
-                <SelectItem value="Gas">Gas</SelectItem>
-                <SelectItem value="Plasma">Plasma</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
+                <SelectItem value="solid">Solid</SelectItem>
+                <SelectItem value="liquid">Liquid</SelectItem>
+                <SelectItem value="gas">Gas</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -193,10 +209,11 @@ export function ChemicalInventory() {
                   </Label>
                   <Input
                     id="formula"
-                    value={newChemical.formula || ''}
+                    value={newChemical.molecular_formula || newChemical.formula || ''}
                     onChange={(e) =>
                       setNewChemical({
                         ...newChemical,
+                        molecular_formula: e.target.value,
                         formula: e.target.value,
                       })
                     }
@@ -228,12 +245,12 @@ export function ChemicalInventory() {
                   <Input
                     id="quantity"
                     type="number"
-                    value={newChemical.initial_quantity || ''}
+                    value={newChemical.quantity || newChemical.initial_quantity || ''}
                     onChange={(e) =>
                       setNewChemical({
                         ...newChemical,
+                        quantity: Number(e.target.value),
                         initial_quantity: Number(e.target.value),
-                        current_quantity: Number(e.target.value),
                       })
                     }
                     className="col-span-2"
@@ -263,6 +280,7 @@ export function ChemicalInventory() {
                       setNewChemical({
                         ...newChemical,
                         location_id: value,
+                        location: value,
                       })
                     }
                   >
@@ -283,10 +301,11 @@ export function ChemicalInventory() {
                     State
                   </Label>
                   <Select
-                    value={newChemical.state}
+                    value={newChemical.chemical_state || newChemical.state}
                     onValueChange={(value) =>
                       setNewChemical({
                         ...newChemical,
+                        chemical_state: value,
                         state: value as 'solid' | 'liquid' | 'gas',
                       })
                     }
@@ -295,9 +314,40 @@ export function ChemicalInventory() {
                       <SelectValue placeholder="Select state" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="solid">Solid</SelectItem>
-                      <SelectItem value="liquid">Liquid</SelectItem>
-                      <SelectItem value="gas">Gas</SelectItem>
+                      <SelectItem value="Solid">Solid</SelectItem>
+                      <SelectItem value="Liquid">Liquid</SelectItem>
+                      <SelectItem value="Gas">Gas</SelectItem>
+                      <SelectItem value="Plasma">Plasma</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="hazard_class" className="text-right">
+                    Hazard Class
+                  </Label>
+                  <Select
+                    value={newChemical.hazard_information || newChemical.hazard_class}
+                    onValueChange={(value) =>
+                      setNewChemical({
+                        ...newChemical,
+                        hazard_information: value,
+                        hazard_class: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select hazard class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Flammable">Flammable</SelectItem>
+                      <SelectItem value="Corrosive">Corrosive</SelectItem>
+                      <SelectItem value="Toxic">Toxic</SelectItem>
+                      <SelectItem value="Oxidizer">Oxidizer</SelectItem>
+                      <SelectItem value="Irritant">Irritant</SelectItem>
+                      <SelectItem value="Harmful">Harmful</SelectItem>
+                      <SelectItem value="Environmental Hazard">Environmental Hazard</SelectItem>
+                      <SelectItem value="Non-hazardous">Non-hazardous</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -338,10 +388,11 @@ export function ChemicalInventory() {
                   <Input
                     id="expiry_date"
                     type="date"
-                    value={newChemical.expiry_date || ''}
+                    value={newChemical.expires || newChemical.expiry_date || ''}
                     onChange={(e) =>
                       setNewChemical({
                         ...newChemical,
+                        expires: e.target.value,
                         expiry_date: e.target.value,
                       })
                     }
@@ -354,27 +405,12 @@ export function ChemicalInventory() {
                   </Label>
                   <Input
                     id="supplier"
-                    value={newChemical.supplier || ''}
+                    value={newChemical.vendor || newChemical.supplier || ''}
                     onChange={(e) =>
                       setNewChemical({
                         ...newChemical,
+                        vendor: e.target.value,
                         supplier: e.target.value,
-                      })
-                    }
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="hazard_class" className="text-right">
-                    Hazard Class
-                  </Label>
-                  <Input
-                    id="hazard_class"
-                    value={newChemical.hazard_class || ''}
-                    onChange={(e) =>
-                      setNewChemical({
-                        ...newChemical,
-                        hazard_class: e.target.value,
                       })
                     }
                     className="col-span-3"
@@ -395,6 +431,29 @@ export function ChemicalInventory() {
                     }
                     className="col-span-3"
                   />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="chemical_type" className="text-right">
+                    Chemical Type
+                  </Label>
+                  <Select
+                    value={newChemical.chemical_type}
+                    onValueChange={(value) =>
+                      setNewChemical({
+                        ...newChemical,
+                        chemical_type: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select chemical type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Organic">Organic</SelectItem>
+                      <SelectItem value="Inorganic">Inorganic</SelectItem>
+                      <SelectItem value="Both">Both</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="msds_url" className="text-right">
@@ -436,10 +495,7 @@ export function ChemicalInventory() {
                   disabled={
                     isSubmitting || 
                     !newChemical.name || 
-                    !newChemical.formula || 
-                    !newChemical.cas_number || 
-                    !newChemical.initial_quantity || 
-                    !newChemical.unit || 
+                    !newChemical.molecular_formula || 
                     !newChemical.location_id
                   }
                 >
@@ -476,11 +532,11 @@ export function ChemicalInventory() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Formula</TableHead>
-                  <TableHead>Reactivity Group</TableHead>
+                  <TableHead>Hazard Class</TableHead>
                   <TableHead>Quantity</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Expiration Date</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead>Supplier</TableHead>
                   <TableHead>Chemical State</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -503,15 +559,24 @@ export function ChemicalInventory() {
                           {chemical.name}
                         </Link>
                       </TableCell>
-                      <TableCell>{chemical.molecular_formula}</TableCell>
-                      <TableCell>{chemical.reactivity_group}</TableCell>
-                      <TableCell>{chemical.quantity}</TableCell>
-                      <TableCell>{getLocationName(chemical.location.toString())}</TableCell>
+                      <TableCell>{chemical.formula || chemical.molecular_formula}</TableCell>
+                      <TableCell>{chemical.reactivity_group || 'N/A'}</TableCell>
+                      <TableCell>{chemical.current_quantity || chemical.quantity || 0} {chemical.unit || ''}</TableCell>
                       <TableCell>
-                        {new Date(chemical.expires).toLocaleDateString()}
+                        {getLocationName(
+                          chemical.location_id || 
+                          (chemical.location && typeof chemical.location === 'object' 
+                            ? chemical.location.id 
+                            : chemical.location?.toString() || '')
+                        )}
                       </TableCell>
-                      <TableCell>{chemical.chemical_type}</TableCell>
-                      <TableCell>{chemical.chemical_state}</TableCell>
+                      <TableCell>
+                        {(chemical.expiry_date || chemical.expires) 
+                          ? new Date(chemical.expiry_date || chemical.expires).toLocaleDateString() 
+                          : 'N/A'}
+                      </TableCell>
+                      <TableCell>{chemical.chemical_type || 'N/A'}</TableCell>
+                      <TableCell>{chemical.state || chemical.chemical_state || 'N/A'}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

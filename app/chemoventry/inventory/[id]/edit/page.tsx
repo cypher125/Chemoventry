@@ -47,7 +47,14 @@ export default function EditChemical() {
   // Update local state when chemical data is loaded
   useEffect(() => {
     if (selectedChemical) {
-      setChemical(selectedChemical);
+      const location_id = typeof selectedChemical.location === 'object' 
+        ? selectedChemical.location.id 
+        : selectedChemical.location;
+        
+      setChemical({
+        ...selectedChemical,
+        location_id
+      });
     }
   }, [selectedChemical]);
 
@@ -62,7 +69,13 @@ export default function EditChemical() {
     setSaveError(null);
     
     try {
-      await updateChemical(chemical.id, chemical);
+      // Convert quantity to a number to ensure proper format
+      const updatedChemical = {
+        ...chemical,
+        quantity: Number(chemical.quantity),
+      };
+      
+      await updateChemical(chemical.id, updatedChemical);
       router.push(`/chemoventry/inventory/${chemical.id}`);
     } catch (error) {
       console.error('Failed to update chemical:', error);
@@ -161,42 +174,22 @@ export default function EditChemical() {
                 />
               </div>
               
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2 space-y-3">
-                  <Label htmlFor="initial_quantity">Initial Quantity</Label>
+              <div className="space-y-3">
+                <Label htmlFor="quantity">Initial Quantity</Label>
+                <div className="flex items-center gap-3">
                   <Input
-                    id="initial_quantity"
+                    id="quantity"
                     type="number"
-                    value={chemical.initial_quantity || ''}
-                    onChange={(e) => handleInputChange('initial_quantity', Number(e.target.value))}
+                    value={chemical.quantity || ''}
+                    onChange={(e) => handleInputChange('quantity', Number(e.target.value))}
+                    className="flex-1"
                   />
-                </div>
-                <div className="space-y-3">
-                  <Label htmlFor="unit">Unit</Label>
                   <Input
                     id="unit"
+                    placeholder="Unit (g, ml)"
                     value={chemical.unit || ''}
                     onChange={(e) => handleInputChange('unit', e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2 space-y-3">
-                  <Label htmlFor="current_quantity">Current Quantity</Label>
-                  <Input
-                    id="current_quantity"
-                    type="number"
-                    value={chemical.current_quantity || ''}
-                    onChange={(e) => handleInputChange('current_quantity', Number(e.target.value))}
-                  />
-                </div>
-                <div className="space-y-3">
-                  <Label htmlFor="unit_display">Unit</Label>
-                  <Input
-                    id="unit_display"
-                    value={chemical.unit || ''}
-                    disabled
+                    className="w-24"
                   />
                 </div>
               </div>
@@ -206,7 +199,7 @@ export default function EditChemical() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location_id">Location</Label>
                 <Select
                   value={chemical.location_id}
                   onValueChange={(value) => handleInputChange('location_id', value)}
@@ -225,75 +218,112 @@ export default function EditChemical() {
               </div>
               
               <div className="space-y-3">
-                <Label htmlFor="state">State</Label>
+                <Label htmlFor="chemical_state">Chemical State</Label>
                 <Select
-                  value={chemical.state}
-                  onValueChange={(value) => handleInputChange('state', value)}
+                  value={chemical.chemical_state}
+                  onValueChange={(value) => handleInputChange('chemical_state', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select state" />
+                    <SelectValue placeholder="Select chemical state" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="solid">Solid</SelectItem>
-                    <SelectItem value="liquid">Liquid</SelectItem>
-                    <SelectItem value="gas">Gas</SelectItem>
+                    <SelectItem value="Solid">Solid</SelectItem>
+                    <SelectItem value="Liquid">Liquid</SelectItem>
+                    <SelectItem value="Gas">Gas</SelectItem>
+                    <SelectItem value="Plasma">Plasma</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               <div className="space-y-3">
-                <Label htmlFor="expiry_date">Expiry Date</Label>
+                <Label htmlFor="reactivity_group">Reactivity Group</Label>
+                <Select
+                  value={chemical.reactivity_group}
+                  onValueChange={(value) => handleInputChange('reactivity_group', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select reactivity group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Alkali">Alkali</SelectItem>
+                    <SelectItem value="Alkaline Earth">Alkaline Earth</SelectItem>
+                    <SelectItem value="Transition Metal">Transition Metal</SelectItem>
+                    <SelectItem value="Lanthanide">Lanthanide</SelectItem>
+                    <SelectItem value="Actinide">Actinide</SelectItem>
+                    <SelectItem value="Metal">Metal</SelectItem>
+                    <SelectItem value="Nonmetal">Nonmetal</SelectItem>
+                    <SelectItem value="Halogen">Halogen</SelectItem>
+                    <SelectItem value="Noble Gas">Noble Gas</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-3">
+                <Label htmlFor="chemical_type">Chemical Type</Label>
+                <Select
+                  value={chemical.chemical_type}
+                  onValueChange={(value) => handleInputChange('chemical_type', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select chemical type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Organic">Organic</SelectItem>
+                    <SelectItem value="Inorganic">Inorganic</SelectItem>
+                    <SelectItem value="Both">Both</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <Label htmlFor="expires">Expiration Date</Label>
                 <Input
-                  id="expiry_date"
+                  id="expires"
                   type="date"
-                  value={chemical.expiry_date ? new Date(chemical.expiry_date).toISOString().split('T')[0] : ''}
-                  onChange={(e) => handleInputChange('expiry_date', e.target.value)}
+                  value={chemical.expires ? new Date(chemical.expires).toISOString().split('T')[0] : ''}
+                  onChange={(e) => handleInputChange('expires', e.target.value)}
                 />
               </div>
               
               <div className="space-y-3">
-                <Label htmlFor="supplier">Supplier</Label>
+                <Label htmlFor="vendor">Vendor/Supplier</Label>
                 <Input
-                  id="supplier"
-                  value={chemical.supplier || ''}
-                  onChange={(e) => handleInputChange('supplier', e.target.value)}
+                  id="vendor"
+                  value={chemical.vendor || ''}
+                  onChange={(e) => handleInputChange('vendor', e.target.value)}
                 />
               </div>
               
               <div className="space-y-3">
-                <Label htmlFor="storage_conditions">Storage Conditions</Label>
+                <Label htmlFor="hazard_information">Hazard Information</Label>
                 <Input
-                  id="storage_conditions"
-                  value={chemical.storage_conditions || ''}
-                  onChange={(e) => handleInputChange('storage_conditions', e.target.value)}
+                  id="hazard_information"
+                  value={chemical.hazard_information || ''}
+                  onChange={(e) => handleInputChange('hazard_information', e.target.value)}
                 />
               </div>
               
               <div className="space-y-3">
-                <Label htmlFor="hazard_class">Hazard Class</Label>
+                <Label htmlFor="molecular_formula">Molecular Formula</Label>
                 <Input
-                  id="hazard_class"
-                  value={chemical.hazard_class || ''}
-                  onChange={(e) => handleInputChange('hazard_class', e.target.value)}
+                  id="molecular_formula"
+                  value={chemical.molecular_formula || ''}
+                  onChange={(e) => handleInputChange('molecular_formula', e.target.value)}
                 />
               </div>
-              
+
               <div className="space-y-3">
-                <Label htmlFor="msds_url">MSDS URL</Label>
+                <Label htmlFor="description">Description</Label>
                 <Input
-                  id="msds_url"
-                  value={chemical.msds_url || ''}
-                  onChange={(e) => handleInputChange('msds_url', e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-3">
-                <Label htmlFor="date_registered">Date Registered</Label>
-                <Input
-                  id="date_registered"
-                  type="date"
-                  value={chemical.date_registered ? new Date(chemical.date_registered).toISOString().split('T')[0] : ''}
-                  disabled
+                  id="description"
+                  value={chemical.description || ''}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
                 />
               </div>
             </div>
