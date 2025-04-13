@@ -164,7 +164,7 @@ export function ChemicalInventory() {
                 Add Chemical
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle>Add New Chemical</DialogTitle>
                 <DialogDescription>
@@ -172,10 +172,10 @@ export function ChemicalInventory() {
                   inventory.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="name" className="text-right">
-                    Name
+                    Name *
                   </Label>
                   <Input
                     id="name"
@@ -184,34 +184,133 @@ export function ChemicalInventory() {
                       setNewChemical({ ...newChemical, name: e.target.value })
                     }
                     className="col-span-3"
+                    required
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="formula" className="text-right">
-                    Formula
+                    Formula *
                   </Label>
                   <Input
                     id="formula"
-                    value={newChemical.molecular_formula || ''}
+                    value={newChemical.formula || ''}
                     onChange={(e) =>
                       setNewChemical({
                         ...newChemical,
-                        molecular_formula: e.target.value,
+                        formula: e.target.value,
                       })
                     }
                     className="col-span-3"
+                    required
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="reactivity" className="text-right">
-                    Reactivity
+                  <Label htmlFor="cas_number" className="text-right">
+                    CAS Number *
+                  </Label>
+                  <Input
+                    id="cas_number"
+                    value={newChemical.cas_number || ''}
+                    onChange={(e) =>
+                      setNewChemical({
+                        ...newChemical,
+                        cas_number: e.target.value,
+                      })
+                    }
+                    className="col-span-3"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="quantity" className="text-right">
+                    Quantity *
+                  </Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    value={newChemical.initial_quantity || ''}
+                    onChange={(e) =>
+                      setNewChemical({
+                        ...newChemical,
+                        initial_quantity: Number(e.target.value),
+                        current_quantity: Number(e.target.value),
+                      })
+                    }
+                    className="col-span-2"
+                    required
+                  />
+                  <Input
+                    id="unit"
+                    placeholder="Unit (g, ml, etc)"
+                    value={newChemical.unit || ''}
+                    onChange={(e) =>
+                      setNewChemical({
+                        ...newChemical,
+                        unit: e.target.value,
+                      })
+                    }
+                    className="col-span-1"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="location" className="text-right">
+                    Location *
+                  </Label>
+                  <Select
+                    value={newChemical.location_id}
+                    onValueChange={(value) =>
+                      setNewChemical({
+                        ...newChemical,
+                        location_id: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locations.map((location) => (
+                        <SelectItem key={location.id} value={location.id}>
+                          {location.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="state" className="text-right">
+                    State
+                  </Label>
+                  <Select
+                    value={newChemical.state}
+                    onValueChange={(value) =>
+                      setNewChemical({
+                        ...newChemical,
+                        state: value as 'solid' | 'liquid' | 'gas',
+                      })
+                    }
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="solid">Solid</SelectItem>
+                      <SelectItem value="liquid">Liquid</SelectItem>
+                      <SelectItem value="gas">Gas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="reactivity_group" className="text-right">
+                    Reactivity Group
                   </Label>
                   <Select
                     value={newChemical.reactivity_group}
                     onValueChange={(value) =>
                       setNewChemical({
                         ...newChemical,
-                        reactivity_group: value as Chemical['reactivity_group'],
+                        reactivity_group: value,
                       })
                     }
                   >
@@ -220,12 +319,8 @@ export function ChemicalInventory() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Alkali">Alkali</SelectItem>
-                      <SelectItem value="Alkaline Earth">
-                        Alkaline Earth
-                      </SelectItem>
-                      <SelectItem value="Transition Metal">
-                        Transition Metal
-                      </SelectItem>
+                      <SelectItem value="Alkaline Earth">Alkaline Earth</SelectItem>
+                      <SelectItem value="Transition Metal">Transition Metal</SelectItem>
                       <SelectItem value="Lanthanide">Lanthanide</SelectItem>
                       <SelectItem value="Actinide">Actinide</SelectItem>
                       <SelectItem value="Metal">Metal</SelectItem>
@@ -236,9 +331,118 @@ export function ChemicalInventory() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="expiry_date" className="text-right">
+                    Expiry Date
+                  </Label>
+                  <Input
+                    id="expiry_date"
+                    type="date"
+                    value={newChemical.expiry_date || ''}
+                    onChange={(e) =>
+                      setNewChemical({
+                        ...newChemical,
+                        expiry_date: e.target.value,
+                      })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="supplier" className="text-right">
+                    Supplier
+                  </Label>
+                  <Input
+                    id="supplier"
+                    value={newChemical.supplier || ''}
+                    onChange={(e) =>
+                      setNewChemical({
+                        ...newChemical,
+                        supplier: e.target.value,
+                      })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="hazard_class" className="text-right">
+                    Hazard Class
+                  </Label>
+                  <Input
+                    id="hazard_class"
+                    value={newChemical.hazard_class || ''}
+                    onChange={(e) =>
+                      setNewChemical({
+                        ...newChemical,
+                        hazard_class: e.target.value,
+                      })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="storage_conditions" className="text-right">
+                    Storage Conditions
+                  </Label>
+                  <Input
+                    id="storage_conditions"
+                    value={newChemical.storage_conditions || ''}
+                    onChange={(e) =>
+                      setNewChemical({
+                        ...newChemical,
+                        storage_conditions: e.target.value,
+                      })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="msds_url" className="text-right">
+                    MSDS URL
+                  </Label>
+                  <Input
+                    id="msds_url"
+                    value={newChemical.msds_url || ''}
+                    onChange={(e) =>
+                      setNewChemical({
+                        ...newChemical,
+                        msds_url: e.target.value,
+                      })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="comments" className="text-right">
+                    Comments
+                  </Label>
+                  <textarea
+                    id="comments"
+                    value={newChemical.comments || ''}
+                    onChange={(e) =>
+                      setNewChemical({
+                        ...newChemical,
+                        comments: e.target.value,
+                      })
+                    }
+                    className="col-span-3 min-h-[100px] px-3 py-2 border rounded-md dark:bg-gray-950 dark:border-gray-800"
+                  />
+                </div>
               </div>
               <DialogFooter>
-                <Button type="submit" onClick={handleAddChemical} disabled={isSubmitting}>
+                <Button 
+                  type="submit" 
+                  onClick={handleAddChemical} 
+                  disabled={
+                    isSubmitting || 
+                    !newChemical.name || 
+                    !newChemical.formula || 
+                    !newChemical.cas_number || 
+                    !newChemical.initial_quantity || 
+                    !newChemical.unit || 
+                    !newChemical.location_id
+                  }
+                >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
