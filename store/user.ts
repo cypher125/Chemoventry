@@ -28,7 +28,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const users = await usersAPI.getUsers();
       set({ users, isLoadingUsers: false });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching users:', error);
       // Always fall back to mock data when in development
       if (process.env.NODE_ENV === 'development') {
@@ -41,7 +41,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       } else {
         set({ 
           isLoadingUsers: false, 
-          error: error.message || 'Failed to fetch users',
+          error: error instanceof Error ? error.message : 'Failed to fetch users',
           users: []
         });
       }
@@ -54,11 +54,11 @@ export const useUserStore = create<UserState>((set, get) => ({
       const user = await usersAPI.getUserById(id);
       set({ isLoadingUsers: false });
       return user;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error fetching user ${id}:`, error);
       set({ 
         isLoadingUsers: false, 
-        error: error.message || `Failed to fetch user ${id}`
+        error: error instanceof Error ? error.message : `Failed to fetch user ${id}`
       });
     }
   },
@@ -69,7 +69,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       await usersAPI.createUser(userData);
       // Refresh the user list
       await get().fetchUsers();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding user:', error);
       
       // In development, add to mock data instead of showing error
@@ -89,7 +89,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       } else {
         set({ 
           isLoadingUsers: false, 
-          error: error.message || 'Failed to add user'
+          error: error instanceof Error ? error.message : 'Failed to add user'
         });
       }
     }
@@ -101,7 +101,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       await usersAPI.updateUser(id, userData);
       // Refresh the user list
       await get().fetchUsers();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error updating user ${id}:`, error);
       
       // In development, update mock data instead of showing error
@@ -117,7 +117,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       } else {
         set({ 
           isLoadingUsers: false, 
-          error: error.message || `Failed to update user ${id}`
+          error: error instanceof Error ? error.message : `Failed to update user ${id}`
         });
       }
     }
@@ -129,7 +129,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       await usersAPI.deleteUser(id);
       // Refresh the user list
       await get().fetchUsers();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error deleting user ${id}:`, error);
       
       // In development, delete from mock data instead of showing error
@@ -143,7 +143,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       } else {
         set({ 
           isLoadingUsers: false, 
-          error: error.message || `Failed to delete user ${id}`
+          error: error instanceof Error ? error.message : `Failed to delete user ${id}`
         });
       }
     }
@@ -154,7 +154,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const user = await usersAPI.getCurrentUser();
       set({ currentUser: user, isLoadingUsers: false });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching current user:', error);
       
       // In development, use mock admin user instead of showing error
@@ -167,7 +167,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       } else {
         set({ 
           isLoadingUsers: false, 
-          error: error.message || 'Failed to fetch current user',
+          error: error instanceof Error ? error.message : 'Failed to fetch current user',
           currentUser: null
         });
       }

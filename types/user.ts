@@ -1,40 +1,91 @@
 export interface User {
   id: string;
+  username: string;
   email: string;
   first_name: string;
   last_name: string;
-  role: 'admin' | 'attendant';
+  full_name?: string;
+  role: UserRole;
+  department?: string;
+  position?: string;
   is_active: boolean;
-  join_date: string; // ISO date string
-  last_login?: string; // ISO date string
+  date_joined: string;
+  last_login?: string;
+  profile_image?: string;
+}
+
+export type UserRole = 'admin' | 'manager' | 'staff' | 'readonly';
+
+export interface LoginCredentials {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  access: string;
+  refresh: string;
+  user: User;
+}
+
+export interface PasswordChange {
+  old_password: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+export interface RegistrationData {
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  password: string;
+  confirm_password: string;
+  role: UserRole;
+  department?: string;
+  position?: string;
+}
+
+export interface UserFilter {
+  query?: string;
+  role?: UserRole;
+  is_active?: boolean;
 }
 
 export interface QRCode {
   id: string;
-  chemical_id: string;
-  chemical_name: string;
-  date_created: string; // ISO date string
-  created_by: string; // User ID
+  data: string;
+  url: string;
+  chemical_id?: string;
+  location_id?: string;
+  created_at: string;
 }
 
 // Mock data for users
 export const mockUsers: User[] = [
   { 
     id: '1', 
+    username: 'johndoe',
+    email: 'john@example.com',
     first_name: 'John', 
     last_name: 'Doe', 
-    email: 'john@example.com', 
+    full_name: 'John Doe',
     role: 'admin',
-    join_date: new Date().toISOString(),
+    department: 'IT',
+    position: 'System Administrator',
+    date_joined: new Date().toISOString(),
     is_active: true 
   },
   { 
     id: '2', 
+    username: 'janesmith',
+    email: 'jane@example.com',
     first_name: 'Jane', 
     last_name: 'Smith', 
-    email: 'jane@example.com', 
-    role: 'attendant',
-    join_date: new Date().toISOString(),
+    full_name: 'Jane Smith',
+    role: 'staff',
+    department: 'Chemistry',
+    position: 'Lab Technician',
+    date_joined: new Date().toISOString(),
     is_active: true 
   },
 ];
@@ -43,37 +94,37 @@ export const mockUsers: User[] = [
 export const mockQRCodes: QRCode[] = [
   {
     id: '1',
+    data: 'NaCl-001',
+    url: '/qrcodes/1',
     chemical_id: 'NaCl-001',
-    chemical_name: 'Sodium Chloride',
-    date_created: '2023-06-15',
-    created_by: '1'
+    created_at: '2023-06-15'
   },
   {
     id: '2',
+    data: 'HCl-002',
+    url: '/qrcodes/2',
     chemical_id: 'HCl-002',
-    chemical_name: 'Hydrochloric Acid',
-    date_created: '2023-06-10',
-    created_by: '2'
+    created_at: '2023-06-10'
   },
   {
     id: '3',
+    data: 'C2H5OH-003',
+    url: '/qrcodes/3',
     chemical_id: 'C2H5OH-003',
-    chemical_name: 'Ethanol',
-    date_created: '2023-06-12',
-    created_by: '1'
+    created_at: '2023-06-12'
   },
   {
     id: '4',
+    data: 'H2SO4-004',
+    url: '/qrcodes/4',
     chemical_id: 'H2SO4-004',
-    chemical_name: 'Sulfuric Acid',
-    date_created: '2023-06-08',
-    created_by: '2'
+    created_at: '2023-06-08'
   },
   {
     id: '5',
+    data: 'NaOH-005',
+    url: '/qrcodes/5',
     chemical_id: 'NaOH-005',
-    chemical_name: 'Sodium Hydroxide',
-    date_created: '2023-06-14',
-    created_by: '1'
+    created_at: '2023-06-14'
   }
 ];

@@ -1,6 +1,8 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { Chemical, Location } from '@/types/inventory';
+import { User } from '@/types/user';
+import { mockQRCodes } from '@/types/mock';
 
 // Ensure API_URL always has a value and ends without a trailing slash
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
@@ -90,8 +92,14 @@ api.interceptors.response.use(
   }
 );
 
+interface LoginResponse {
+  access: string;
+  refresh: string;
+  user: User;
+}
+
 export const authAPI = {
-  login: async (email: string, password: string) => {
+  login: async (email: string, password: string): Promise<LoginResponse> => {
     try {
       const response = await api.post('/api/users/token/', { email, password });
       return response.data;
@@ -100,7 +108,7 @@ export const authAPI = {
       throw error;
     }
   },
-  refreshToken: async (refresh: string) => {
+  refreshToken: async (refresh: string): Promise<{access: string; refresh: string}> => {
     const response = await api.post('/api/users/token/refresh/', { refresh });
     return response.data;
   },
@@ -112,29 +120,17 @@ export const authAPI = {
 };
 
 export const usersAPI = {
-  getCurrentUser: async () => {
+  getCurrentUser: async (): Promise<User> => {
     try {
       const response = await api.get('/api/users/me/');
       return response.data;
     } catch (error) {
       console.error('Error fetching current user:', error);
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Using mock data for current user in development');
-        // Return a mock admin user in development
-        return { 
-          id: '1', 
-          first_name: 'John', 
-          last_name: 'Doe', 
-          email: 'john@example.com', 
-          role: 'admin',
-          join_date: new Date().toISOString(),
-          is_active: true 
-        };
-      }
+      
       throw error;
     }
   },
-  getUsers: async () => {
+  getUsers: async (): Promise<User[]> => {
     try {
       const response = await api.get('/api/users/');
       return response.data;
@@ -142,14 +138,11 @@ export const usersAPI = {
       console.error('Error fetching users:', error);
       if (process.env.NODE_ENV === 'development') {
         console.log('Using mock data for users in development');
-        // Import mockUsers from types
-        const { mockUsers } = require('@/types/user');
-        return mockUsers;
       }
       throw error;
     }
   },
-  getUserById: async (id: string) => {
+  getUserById: async (id: string): Promise<User> => {
     try {
       const response = await api.get(`/api/users/${id}/`);
       return response.data;
@@ -158,7 +151,7 @@ export const usersAPI = {
       throw error;
     }
   },
-  createUser: async (userData: any) => {
+  createUser: async (userData: Partial<User>): Promise<User> => {
     try {
       const response = await api.post('/api/users/', userData);
       return response.data;
@@ -171,12 +164,12 @@ export const usersAPI = {
           ...userData,
           id: Date.now().toString(),
           join_date: new Date().toISOString()
-        };
+        } as User;
       }
       throw error;
     }
   },
-  updateUser: async (id: string, userData: any) => {
+  updateUser: async (id: string, userData: Partial<User>): Promise<User> => {
     try {
       const response = await api.patch(`/api/users/${id}/`, userData);
       return response.data;
@@ -189,12 +182,12 @@ export const usersAPI = {
           id,
           ...userData,
           updated_at: new Date().toISOString()
-        };
+        } as User;
       }
       throw error;
     }
   },
-  deleteUser: async (id: string) => {
+  deleteUser: async (id: string): Promise<{success: boolean}> => {
     try {
       const response = await api.delete(`/api/users/${id}/`);
       return response.data;
@@ -285,7 +278,7 @@ export const inventoryAPI = {
     report_type: string,
     start_date?: string,
     end_date?: string
-  }) => {
+  }): Promise<Blob> => {
     try {
       // Log request parameters for debugging
       console.log('Generating report with params:', params);
@@ -314,7 +307,7 @@ export const inventoryAPI = {
       
       // Try each URL in sequence until one works
       let response = null;
-      let error = null;
+      let error: unknown = null;
       
       // First try the direct URL
       try {
@@ -365,9 +358,18 @@ export const inventoryAPI = {
   },
 };
 
+// Define QRCode interface
+interface QRCode {
+  id: string;
+  chemical_id: string;
+  chemical_name: string;
+  date_created: string;
+  created_by: string;
+}
+
 export const qrCodeAPI = {
   // Get all QR codes
-  getQRCodes: async () => {
+  getQRCodes: async (): Promise<QRCode[]> => {
     try {
       const response = await api.get('/api/qr-codes/');
       return response.data;
@@ -375,16 +377,14 @@ export const qrCodeAPI = {
       console.error('Error fetching QR codes:', error);
       if (process.env.NODE_ENV === 'development') {
         console.log('Using mock data for QR codes in development');
-        // Import mockQRCodes from types
-        const { mockQRCodes } = require('@/types/user');
-        return mockQRCodes;
+        return mockQRCodes as QRCode[];
       }
       throw error;
     }
   },
   
   // Get a single QR code by ID
-  getQRCodeById: async (id: string) => {
+  getQRCodeById: async (id: string): Promise<QRCode> => {
     try {
       const response = await api.get(`/api/qr-codes/${id}/`);
       return response.data;
@@ -392,11 +392,9 @@ export const qrCodeAPI = {
       console.error(`Error fetching QR code ${id}:`, error);
       if (process.env.NODE_ENV === 'development') {
         console.log(`Using mock data for QR code ${id} in development`);
-        // Import mockQRCodes from types and find the QR code
-        const { mockQRCodes } = require('@/types/user');
         const qrCode = mockQRCodes.find(code => code.id === id);
         if (qrCode) {
-          return qrCode;
+          return qrCode as QRCode;
         }
       }
       throw error;
@@ -404,7 +402,7 @@ export const qrCodeAPI = {
   },
   
   // Generate a new QR code (only used in production)
-  generateQRCode: async (data: { chemical_id: string, chemical_name: string }) => {
+  generateQRCode: async (data: { chemical_id: string, chemical_name: string }): Promise<QRCode> => {
     try {
       const response = await api.post('/api/qr-codes/', data);
       return response.data;
@@ -426,7 +424,7 @@ export const qrCodeAPI = {
   },
   
   // Delete a QR code
-  deleteQRCode: async (id: string) => {
+  deleteQRCode: async (id: string): Promise<{ success: boolean }> => {
     try {
       await api.delete(`/api/qr-codes/${id}/`);
       return { success: true };

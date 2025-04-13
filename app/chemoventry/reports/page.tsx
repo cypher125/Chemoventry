@@ -137,22 +137,22 @@ export default function ReportsPage() {
         
         {/* General Reports Tab */}
         <TabsContent value="general" className="space-y-6">
-          <Card>
-            <CardHeader>
+      <Card>
+        <CardHeader>
               <CardTitle className="text-xl">Generate Reports</CardTitle>
-              <CardDescription>
+          <CardDescription>
                 Generate comprehensive reports for your chemical inventory
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-6 sm:grid-cols-2">
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-6 sm:grid-cols-2">
                 {/* Date Range Filter */}
-                <div className="space-y-2">
+            <div className="space-y-2">
                   <Label>Date Range</Label>
-                  <DatePickerWithRange 
-                    onDateRangeChange={setDateRange} 
-                    placeholderText="Select date range"
-                    className="w-full"
+              <DatePickerWithRange 
+                onDateRangeChange={setDateRange} 
+                placeholderText="Select date range"
+                className="w-full"
                     initialDateRange={dateRange}
                   />
                   <p className="text-xs text-muted-foreground">
@@ -182,9 +182,9 @@ export default function ReportsPage() {
                   <p className="text-xs text-muted-foreground">
                     Filter inventory report by location
                   </p>
-                </div>
-              </div>
-              
+            </div>
+          </div>
+          
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {/* Inventory Report */}
                 <ReportCard
@@ -212,13 +212,13 @@ export default function ReportsPage() {
                   onGenerateReport={handleExpiryReport}
                 />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
         {/* Stock Reports Tab */}
         <TabsContent value="stock" className="space-y-6">
-          <Card>
+                <Card>
             <CardHeader>
               <CardTitle className="text-xl">Stock Management Reports</CardTitle>
               <CardDescription>
@@ -275,19 +275,19 @@ export default function ReportsPage() {
                   onGenerateReport={handleLowStockReport}
                 />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
+                  </CardContent>
+                </Card>
+              </TabsContent>
+      
         {/* Advanced Reports Tab - Admin Only */}
         <TabsContent value="advanced" className="space-y-6">
-          <Card>
-            <CardHeader>
+      <Card>
+        <CardHeader>
               <CardTitle className="text-xl">Advanced Analysis Reports</CardTitle>
-              <CardDescription>
+          <CardDescription>
                 Generate comprehensive analytical reports (Admin only)
-              </CardDescription>
-            </CardHeader>
+          </CardDescription>
+        </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2">
                 {/* Usage Trends */}
@@ -308,8 +308,8 @@ export default function ReportsPage() {
                   disabled={!dateRange.from || !dateRange.to}
                 />
               </div>
-            </CardContent>
-          </Card>
+        </CardContent>
+      </Card>
         </TabsContent>
       </Tabs>
     </div>

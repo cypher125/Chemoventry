@@ -22,7 +22,7 @@ export async function GET(
     }
     
     // Get token from cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('token');
     
     if (!token) {
@@ -62,27 +62,44 @@ export async function GET(
         'Content-Disposition': contentDisposition,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error generating report:', error);
     
-    // If we have a response from the backend, pass it through
-    if (error.response) {
-      let errorMessage = 'Error generating report';
+    // Handle axios errors
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status || 500;
+      let message = 'Error generating report';
       
-      // Try to parse error message if it's JSON
-      if (error.response.data) {
-        try {
-          const errorData = JSON.parse(error.response.data.toString());
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          // If we can't parse JSON, use status text
-          errorMessage = error.response.statusText || errorMessage;
+      if (error.response?.data) {
+        // For buffer responses
+        if (error.response.data instanceof Buffer || error.response.data instanceof ArrayBuffer) {
+          try {
+            let text;
+            if (error.response.data instanceof Buffer) {
+              text = error.response.data.toString('utf-8');
+            } else {
+              // For ArrayBuffer
+              text = Buffer.from(new Uint8Array(error.response.data)).toString('utf-8');
+            }
+            try {
+              const json = JSON.parse(text);
+              message = json.error || json.detail || message;
+            } catch {
+              message = text || message;
+            }
+          } catch {
+            message = error.response.statusText || message;
+          }
+        } else if (typeof error.response.data === 'object') {
+          // For JSON responses
+          message = error.response.data.error || error.response.data.detail || message;
         }
       }
       
-      return NextResponse.json({ error: errorMessage }, { status: error.response.status });
+      return NextResponse.json({ error: message }, { status });
     }
     
+    // Generic error handling
     return NextResponse.json({ error: 'Failed to generate report' }, { status: 500 });
   }
 } 

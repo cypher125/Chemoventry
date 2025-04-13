@@ -1,24 +1,66 @@
 export interface Location {
   id: string;
   name: string;
+  description?: string;
+  building?: string;
+  room_number?: string;
+  storage_type?: string;
+  storage_conditions?: string;
+  max_capacity?: number;
+  current_capacity?: number;
+  is_active: boolean;
 }
 
 export interface Chemical {
   id: string;
+  cas_number: string;
   name: string;
-  quantity: number;
+  formula: string;
+  state?: 'solid' | 'liquid' | 'gas';
+  hazard_class?: string;
+  storage_conditions?: string;
+  initial_quantity: number;
+  current_quantity: number;
+  unit: string;
+  location_id: string;
+  location_name?: string;
+  date_registered: string;
+  expiry_date?: string;
+  supplier?: string;
+  msds_url?: string;
+  comments?: string;
+  is_active: boolean;
+}
+
+export interface ChemicalFilter {
+  name?: string;
+  cas_number?: string;
+  location_id?: string;
+  state?: string;
+  hazard_class?: string;
+  low_stock?: boolean;
+  expired?: boolean;
+  is_active?: boolean;
+}
+
+export interface DashboardOverview {
+  total_chemicals: number;
+  low_stock_count: number;
+  expired_count: number;
+  chemicals_by_state: {
+    solid: number;
+    liquid: number;
+    gas: number;
+  };
+  chemicals_by_hazard: Record<string, number>;
+  recent_activities: {
+    id: string;
+    activity_type: string;
   description: string;
-  vendor: string;
-  hazard_information: string;
-  molecular_formula: string;
-  reactivity_group: 'Alkali' | 'Alkaline Earth' | 'Transition Metal' | 'Lanthanide' | 'Actinide' | 'Metal' | 'Nonmetal' | 'Halogen' | 'Noble Gas' | 'Other';
-  chemical_type: 'Organic' | 'Inorganic' | 'Both';
-  chemical_state: 'Solid' | 'Liquid' | 'Gas' | 'Plasma' | 'Other';
-  location: Location;
-  expires: string; // ISO date string
-  created_by: string; // User ID
-  created_at: string; // ISO datetime string
-  updated_at: string; // ISO datetime string
+    timestamp: string;
+    user_id: string;
+    user_name: string;
+  }[];
 }
 
 // Mock data based on the schema
